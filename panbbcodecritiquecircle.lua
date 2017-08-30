@@ -1,6 +1,8 @@
--- panbbcodeVBulletin - BBCode writer for pandoc
--- Copyright (C) 2015 Kerbas_ad_astra
--- Based on panbbcode, Copyright (C) 2014 Jens Oliver John < dev ! 2ion ! de >
+-- panbbcodeCritiqueCircle - BBCode writer for pandoc
+-- Copyright (C) 2017 robwhitaker
+-- Based on:
+--     panbbcodeVBulletin, Copyright (C) 2015 Kerbas_ad_astra
+--     panbbcode, Copyright (C) 2014 Jens Oliver John < dev ! 2ion ! de >
 -- Licensed under the GNU General Public License v3 or later.
 -- Written for Lua 5.{1,2}
 
@@ -11,14 +13,6 @@ local function enclose(t, s, p)
 		return string.format("[%s=%s]%s[/%s]", t, p, s, t)
 	else
 		return string.format("[%s]%s[/%s]", t, s, t)
-	end
-end
-
-local function prepend(t, s, p)
-	if p then
-		return string.format("[%s=%s]%s", t, p, s)
-	else
-		return string.format("[%s]%s", t, s)
 	end
 end
 
@@ -57,7 +51,7 @@ function LineBreak()
 end
 
 function Emph(s)
-	return enclose('I', s)
+	return enclose('i', s)
 end
 
 function Strong(s)
@@ -65,11 +59,11 @@ function Strong(s)
 end
 
 function Subscript(s)
-	return enclose('SUB', s)
+	return s
 end
 
 function Superscript(s)
-	return enclose('SUP', s)
+	return s
 end
 
 function SmallCaps(s)
@@ -77,7 +71,7 @@ function SmallCaps(s)
 end
 
 function Strikeout(s)
-	return enclose('s', s)
+	return enclose('y', s)
 end
 
 function Link(s, src, title)
@@ -85,19 +79,15 @@ function Link(s, src, title)
 end
 
 function Image(s, src, title)
-	return enclose('img', s, src)
+	return ''
 end
 
 function CaptionedImage(src, attr, title)
-	-- if not title or title == "" then
-		return enclose('img', src) -- Commented out "title" line since the forums don't seem to like [img=blah].
-	-- else
-		-- return enclose('img', src, title)
-	-- end
+	return ''
 end
 
 function Code(s, attr)
-	return string.format("[CODE]%s[/CODE]", s)
+	return enclose('quote', s)
 end
 
 function InlineMath(s)
@@ -126,23 +116,15 @@ function Para(s)
 end
 
 function Header(level, s, attr)
-	if level == 1 then
-		return enclose('SIZE', enclose('b', enclose('u', s)), '+2')
-	elseif level == 2 then
-	return enclose('SIZE', enclose('b', enclose('u', s)), '+1')
-	elseif level == 3 then
-		return enclose('b', enclose('u', s))
-	else
-		return enclose('b', s)
-	end
+	return "[c]<h" .. level .. ">" .. s .. "</h" .. level .. ">[/c]"
 end
 
 function BlockQuote(s)
 	local a, t = s:match('@([%w]+): (.+)')
 	if a then
-		return enclose('quote', t or "Unknown" , a)
+		return enclose('quote', '\n' .. t or "Unknown" .. '\n', a)
 	else
-		return enclose('quote', s)
+		return enclose('quote', '\n' .. s .. '\n')
 	end
 end
 
@@ -151,28 +133,31 @@ function Cite(s)
 end
 
 function Blocksep(s)
-	return "\n\n"
+	return "\n"
 end
 
 function HorizontalRule(s)
-	return '--'
+	return '<hr/>'
 end
 
 function CodeBlock(s, attr)
-	return enclose('CODE', s)
+	return enclose('quote', '\n' .. s .. '\n')
 end
 
 local function makelist(items, ltype)
 	local buf = ""
-	if ltype == '*' then
-		buf = "[list]"
-	else
-		buf = string.format("[list=%s]", ltype)
-	end
+	local index = 1
 	for _,e in ipairs(items) do
-		buf = buf .. prepend('*', e) .. '\n'
+		if index > 1 then
+			buf = buf .. '\n'
+		end
+		if ltype == '1' then
+			buf = buf .. string.format('%d. %s', index, e)
+		else 
+			buf = buf .. string.format('%s %s', ltype, e)
+		end
+		index = index + 1
 	end
-	buf = buf .. '[/list]'
 	return buf
 end
 
@@ -202,56 +187,19 @@ function html_align(align)
 end
 
 function Table(cap, align, widths, headers, rows)
-	local buf = {}
-	local function add(s)
-		table.insert(buf,s)
-	end
-	local width = 0
-	if widths and widths[1] ~= 0 then
-		for _,w in ipairs(widths) do
-			width = width + w
-		end
-	else
-		width = 500
-	end
-	add(string.format("[table=\"width:%d\"]",width))
-	add("[tr]")
-	for i,h in ipairs(headers) do
-		local locAlign = align[i]
-		if locAlign == "AlignDefault" then
-			add(enclose('td',Strong(h)))
-		elseif locAlign == "AlignCenter" then
-			add(enclose('td',enclose("center",Strong(h))))
-		elseif locAlign == "AlignLeft" then
-			add(enclose('td',enclose("left",Strong(h))))
-		elseif locAlign == "AlignRight" then
-			add(enclose('td',enclose("right",Strong(h))))
-		end
-	end
-	add("[/tr]")
-	
-	for _,r in ipairs(rows) do
-		add("[tr]")
-		for i,c in ipairs(r) do
-			local locAlign = align[i]
-			if locAlign == "AlignDefault" then
-				add(enclose('td',c))
-			elseif locAlign == "AlignCenter" then
-				add(enclose('td',enclose("center",c)))
-			elseif locAlign == "AlignLeft" then
-				add(enclose('td',enclose("left",c)))
-			elseif locAlign == "AlignRight" then
-				add(enclose('td',enclose("right",c)))
-			end
-		end
-		add("[/tr]")
-	end
-	add("[/table]")
-	return table.concat(buf, '\n')
+	return ''
 end
 
 function Div(s, attr)
 	return s
+end
+
+function DoubleQuoted(s)
+	return '“' .. s .. '”'
+end
+
+function SingleQuoted(s)
+	return "‘" .. s .. "’"
 end
 
 -- boilerplate

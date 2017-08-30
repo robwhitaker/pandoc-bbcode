@@ -1,0 +1,20 @@
+[c]<h1>Heading 1</h1>[/c]
+[c]<h2>Heading 2</h2>[/c]
+[c]<h3>Heading 3</h3>[/c]
+Some plain text as well as [url=https://www.critiquecircle.com]a URL[/url].
+Formatting:
+* [b]bold[/b] [b]text[/b]
+* [i]italicized[/i] [i]text[/i]
+* [y]strike-through[/y]
+* Underlined text works, but doesn’t exist in Markdown
+* Ordered lists
+Things that don’t work:
+1. Tables have no representation in CC’s BBCode
+2. Neither do images
+<hr/>
+Quoted text: [quote]quoted text[/quote]
+Block quotes:
+[quote]
+This is a block quote.
+Neat, huh?
+[/quote]

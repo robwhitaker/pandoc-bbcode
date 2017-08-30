@@ -1,16 +1,15 @@
-# pandoc-bbcode: Write vBulletin forum posts in Markdown (or anything else)
+# pandoc-bbcode: Write Critique Circle stories and forum posts in Markdown (or anything else)
 
-## Introduction to Kerbas_ad_astra's modifications
+## Overview
 
-Kerbal Space Program players (and especially addon authors) have to manage a lot of websites -- the official forums, Kerbal CurseForge, and a variety of unofficial but popular sites, like GitHub, KerbalStuff, and KerbalX.  The latter all ingest markdown just fine, but the first two don't -- the forums run on BBCode, while CurseForge works natively with HTML.  [Pandoc](pandoc.org) is handy for converting markdown into HTML, but it doesn't produce BBCode natively (probably because there's no single BBCode standard).  Like 2ion, I don't much like typing in BBCode or using the native forum editor, so I was extremely happy to find 2ion's converter.  I've made some modifications so that its output works with forums that run on vBulletin (as the KSP forum does), but really, I just built a little on top of his work.
+This is a simple [Pandoc](https://pandoc.org/) writer for converting Markdown, Word Docs, etc. to Critique Circle's flavor of BBCode. An example of this conversion can be seen in the `samples/` folder where `sample.md` is the input and `sample.ccbbcode` is the output.
 
-One nice thing that this conversion gets us: vBulletin's implementation of BBCode supports native tables, so we don't have to hack around with "columnation" like 2ion does:
+## Usage
+
+You can convert a file from any Pandoc-recognized format to Critique Circle format with the syntax below.
 
 ```
-| Table  | Test |
-|:------:|-----:|
-|   0    |    1 |
+pandoc INPUTFILE.md -S -t panbbcodecritiquecircle.lua -o OUTPUTFILE.ccbbcode
 ```
-| Table  | Test |
-|:------:|-----:|
-|   0    |    1 |
+
+Pandoc will be able to figure out the type of your input file by the file extension. The `-S` tells it to convert things like "---" and "'" to em-dash and curly/smart quote, respectively. For a much more in-depth explanation of Pandoc usage and features, check out [the Pandoc website](https://pandoc.org/).
